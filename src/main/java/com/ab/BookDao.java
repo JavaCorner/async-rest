@@ -1,6 +1,7 @@
 package com.ab;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author Arpit Bhardwaj
@@ -10,7 +11,7 @@ public class BookDao {
     private Map<String,Book> books;
 
     public BookDao() {
-        books = new HashMap<>();
+        /*books = new HashMap<>();
 
         Book book1 = new Book();
         book1.setId("1");
@@ -27,8 +28,9 @@ public class BookDao {
         book2.setPublished(new Date());
 
         books.put(book1.getId(),book1);
-        books.put(book2.getId(),book2);
+        books.put(book2.getId(),book2);*/
 
+        books = new ConcurrentHashMap<>();
     }
 
     public Collection<Book> getBooks(){
@@ -37,5 +39,11 @@ public class BookDao {
 
     public Book getBook(String id){
         return books.get(id);
+    }
+
+    public Book addBook(Book book){
+        book.setId(UUID.randomUUID().toString());
+        books.put(book.getId(),book);
+        return book;
     }
 }

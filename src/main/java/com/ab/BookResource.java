@@ -1,9 +1,6 @@
 package com.ab;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import java.util.Collection;
@@ -28,6 +25,13 @@ public class BookResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Book getBook(@PathParam("id") String id){
         return bookDao.getBook(id);
+    }
+
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Book addBook(Book book){
+        return bookDao.addBook(book);
     }
 
 }
