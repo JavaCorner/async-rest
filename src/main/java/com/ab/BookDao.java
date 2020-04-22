@@ -1,7 +1,13 @@
 package com.ab;
 
+import jersey.repackaged.com.google.common.util.concurrent.ListenableFuture;
+import jersey.repackaged.com.google.common.util.concurrent.ListeningExecutorService;
+import jersey.repackaged.com.google.common.util.concurrent.MoreExecutors;
+
 import java.util.*;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
 
 /**
  * @author Arpit Bhardwaj
@@ -9,6 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class BookDao {
 
     private Map<String,Book> books;
+    private ListeningExecutorService executorService;
 
     public BookDao() {
         /*books = new HashMap<>();
@@ -31,19 +38,50 @@ public class BookDao {
         books.put(book2.getId(),book2);*/
 
         books = new ConcurrentHashMap<>();
+        executorService = MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(10));
     }
 
     public Collection<Book> getBooks(){
         return books.values();
     }
 
+    public ListenableFuture<Collection<Book>> getBooksAsync(){
+        ListenableFuture<Collection<Book>> listenableFuture = executorService.submit(new Callable<Collection<Book>>() {
+            @Override
+            public Collection<Book> call() throws Exception {
+                return getBooks();
+            }
+        });
+        return listenableFuture;
+    }
+
     public Book getBook(String id){
         return books.get(id);
+    }
+
+    public ListenableFuture<Book> getBookAsync(final String id){
+        ListenableFuture<Book> listenableFuture = executorService.submit(new Callable<Book>() {
+            @Override
+            public Book call() throws Exception {
+                return getBook(id);
+            }
+        });
+        return listenableFuture;
     }
 
     public Book addBook(Book book){
         book.setId(UUID.randomUUID().toString());
         books.put(book.getId(),book);
         return book;
+    }
+
+    public ListenableFuture<Book> addBookAsync(final Book book){
+        ListenableFuture<Book> listenableFuture = executorService.submit(new Callable<Book>() {
+            @Override
+            public Book call() throws Exception {
+                return addBook(book);
+            }
+        });
+        return listenableFuture;
     }
 }
