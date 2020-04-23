@@ -28,8 +28,8 @@ public class BookResourceTest extends JerseyTest {
 
     protected Application configure(){
         final BookDao bookDao = new BookDao();
-        //enable(TestProperties.LOG_TRAFFIC);
-        //enable(TestProperties.DUMP_ENTITY);
+        enable(TestProperties.LOG_TRAFFIC);
+        enable(TestProperties.DUMP_ENTITY);
         return new BookApplication(bookDao);
     }
 

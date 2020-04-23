@@ -1,16 +1,22 @@
 package com.ab;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+
 import java.util.Date;
 
 /**
  * @author Arpit Bhardwaj
  */
+@JsonPropertyOrder({"id"})
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Book {
-    private String id;
+
     private String title;
     private String author;
     private String isbn;
     private Date published;
+    private String id;
 
     public String getId() {
         return id;
