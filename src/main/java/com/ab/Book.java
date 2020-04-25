@@ -1,7 +1,10 @@
 package com.ab;
 
 import com.fasterxml.jackson.annotation.*;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
+import javax.validation.constraints.NotNull;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -12,9 +15,11 @@ import java.util.Map;
 @JsonPropertyOrder({"id"})
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+@JacksonXmlRootElement(localName = "book")
 public class Book {
-
+    @NotNull(message = "title is a required field")
     private String title;
+    @NotNull(message = "author is a required field")
     private String author;
     //private String isbn;
     private Date published;
@@ -22,6 +27,7 @@ public class Book {
 
     private Map<String,Object> extras = new HashMap<>();
 
+    @JacksonXmlProperty(isAttribute = true)
     public String getId() {
         return id;
     }

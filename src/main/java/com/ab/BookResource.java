@@ -5,6 +5,8 @@ import jersey.repackaged.com.google.common.util.concurrent.Futures;
 import jersey.repackaged.com.google.common.util.concurrent.ListenableFuture;
 import org.glassfish.jersey.server.ManagedAsync;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
@@ -28,7 +30,8 @@ public class BookResource {
     }*/
 
     @GET
-    @Produces(MediaType.APPLICATION_JSON)
+    //@Produces({MediaType.APPLICATION_JSON,MediaType.APPLICATION_XML})
+    @Produces({"application/json;qs=1","application/xml;qs=0.5"})
     @ManagedAsync
     public void getBooks(@Suspended final AsyncResponse response){
         //response.resume(bookDao.getBooks());
@@ -55,7 +58,8 @@ public class BookResource {
 
     @Path("/{id}")
     @GET
-    @Produces(MediaType.APPLICATION_JSON)
+    //@Produces({MediaType.APPLICATION_JSON,MediaType.APPLICATION_XML})
+    @Produces({"application/json;qs=1","application/xml;qs=0.5"})
     @ManagedAsync
     public void getBook(@PathParam("id") String id,@Suspended final AsyncResponse response){
         //response.resume(bookDao.getBook(id));
@@ -84,7 +88,7 @@ public class BookResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @ManagedAsync
-    public void addBook(Book book, @Suspended final AsyncResponse response){
+    public void addBook(@Valid @NotNull Book book, @Suspended final AsyncResponse response){
         //response.resume(bookDao.addBook(book));
         ListenableFuture<Book> listenableFuture = bookDao.addBookAsync(book);
         Futures.addCallback(listenableFuture, new FutureCallback<Book>() {

@@ -1,6 +1,11 @@
 package com.ab;
 
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
+import com.jcabi.xml.XML;
+import com.jcabi.xml.XMLDocument;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
+import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
 import org.glassfish.jersey.test.TestProperties;
@@ -20,8 +25,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 /**
  * @author Arpit Bhardwaj
@@ -37,6 +41,11 @@ public class BookResourceTest extends JerseyTest {
         return new BookApplication(bookDao);
     }
 
+    protected void configureClient(ClientConfig clientConfig){
+        JacksonJsonProvider jsonProvider = new JacksonJsonProvider()
+                .configure(SerializationFeature.WRITE_NULL_MAP_VALUES, false);
+        clientConfig.register(jsonProvider);
+    }
     @Before
     public void setUpBooks(){
         /*book_id1 = addBook("author1","title1",new Date(), "isbn1").readEntity(Book.class).getId();
@@ -127,7 +136,38 @@ public class BookResourceTest extends JerseyTest {
         assertEquals("extra1",readEntity.get("extra1"));
     }
 
+    @Test
+    public void testGetBookAsXml(){
+        String response = target("books").request(MediaType.APPLICATION_XML).get().readEntity(String.class);
+        XML xml = new XMLDocument(response);
+
+        assertNotNull(response);
+        assertEquals("title1",xml.xpath("/books/book[@id ='"+book_id1+"']/title/text()").get(0));
+        assertEquals("author1",xml.xpath("/books/book[@id ='"+book_id1+"']/author/text()").get(0));
+    }
+
     public Map<String,Object> deserializeResponseToMap(Response response){
         return response.readEntity(new GenericType<Map<String, Object>>() {});
+    }
+    @Test
+    public void addBookNoAuthor(){
+        Response response = addBook(null,"title",new Date(), "isbn");
+        assertEquals(400, response.getStatus());
+        String message = response.readEntity(String.class);
+        assertTrue(message.contains("author is a required field"));
+    }
+
+    @Test
+    public void addBookNoTitle(){
+        Response response = addBook("author",null,new Date(), "isbn");
+        assertEquals(400, response.getStatus());
+        String message = response.readEntity(String.class);
+        assertTrue(message.contains("title is a required field"));
+    }
+
+    @Test
+    public void addBookNoBook(){
+        Response response = target("books").request().post(null);
+        assertEquals(400, response.getStatus());
     }
 }
