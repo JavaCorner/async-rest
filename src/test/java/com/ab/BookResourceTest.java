@@ -6,6 +6,7 @@ import com.jcabi.xml.XML;
 import com.jcabi.xml.XMLDocument;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.grizzly.connector.GrizzlyConnectorProvider;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
 import org.glassfish.jersey.test.TestProperties;
@@ -42,6 +43,7 @@ public class BookResourceTest extends JerseyTest {
         JacksonJsonProvider jsonProvider = new JacksonJsonProvider()
                 .configure(SerializationFeature.WRITE_NULL_MAP_VALUES, false);
         clientConfig.register(jsonProvider);
+        clientConfig.connectorProvider(new GrizzlyConnectorProvider());
     }
     @Before
     public void setUpBooks(){
@@ -183,4 +185,19 @@ public class BookResourceTest extends JerseyTest {
         Response response = target("books").path(book_id1).request().header("if-None-Match", entityTag).get();
         assertEquals(304,response.getStatus());
     }
+
+    @Test
+    public void updateBookAuthor(){
+        Map<String,Object> updates = new HashMap<>();
+        updates.put("author", "updatedAuthor");
+        Entity<Map<String,Object>> updateEntity = Entity.entity(updates, MediaType.APPLICATION_JSON_TYPE);
+        Response response = target("books").path(book_id1).request().build("PATCH", updateEntity).invoke();
+        assertEquals(200, response.getStatus());
+
+        Response getResponse = target("books").path(book_id1).request().get();
+        Map<String,Object> readEntity = deserializeResponseToMap(getResponse);
+        assertEquals("updatedAuthor",readEntity.get("author"));
+    }
+
+
 }

@@ -113,6 +113,27 @@ public class BookResource {
         });
     }
 
+    @Path("/{id}")
+    @PATCH
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @ManagedAsync
+    public void updateBook(@PathParam("id") String id, Book book, @Suspended final AsyncResponse response){
+        //response.resume(bookDao.addBook(book));
+        ListenableFuture<Book> listenableFuture = bookDao.updateBookAsync(id,book);
+        Futures.addCallback(listenableFuture, new FutureCallback<Book>() {
+            @Override
+            public void onSuccess(Book book) {
+                response.resume(book);
+            }
+
+            @Override
+            public void onFailure(Throwable throwable) {
+                response.resume(throwable);
+            }
+        });
+    }
+
     EntityTag generateEntityTag(Book book){
         return new EntityTag(DigestUtils.md5Hex(book.getAuthor()
                 +book.getTitle()
