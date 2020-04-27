@@ -191,7 +191,8 @@ public class BookResourceTest extends JerseyTest {
         Map<String,Object> updates = new HashMap<>();
         updates.put("author", "updatedAuthor");
         Entity<Map<String,Object>> updateEntity = Entity.entity(updates, MediaType.APPLICATION_JSON_TYPE);
-        Response response = target("books").path(book_id1).request().build("PATCH", updateEntity).invoke();
+        Response response = target("books").path(book_id1).request()
+                .build("PATCH", updateEntity).invoke();
         assertEquals(200, response.getStatus());
 
         Response getResponse = target("books").path(book_id1).request().get();
@@ -199,5 +200,22 @@ public class BookResourceTest extends JerseyTest {
         assertEquals("updatedAuthor",readEntity.get("author"));
     }
 
+    @Test
+    public void updateIfMatch(){
+        EntityTag entityTag = target("books").path(book_id1).request().get().getEntityTag();
+
+        Map<String,Object> updates = new HashMap<>();
+        updates.put("author", "updatedAuthor");
+        Entity<Map<String,Object>> updateEntity = Entity.entity(updates, MediaType.APPLICATION_JSON_TYPE);
+        Response response = target("books").path(book_id1).request()
+                .header("If-Match",entityTag)
+                .build("PATCH", updateEntity).invoke();
+        assertEquals(200, response.getStatus());
+
+        Response updateResponse = target("books").path(book_id1).request()
+                .header("If-Match",entityTag)
+                .build("PATCH", updateEntity).invoke();
+        assertEquals(412, updateResponse.getStatus());
+    }
 
 }

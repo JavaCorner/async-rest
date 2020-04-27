@@ -102,8 +102,8 @@ public class BookResource {
         ListenableFuture<Book> listenableFuture = bookDao.addBookAsync(book);
         Futures.addCallback(listenableFuture, new FutureCallback<Book>() {
             @Override
-            public void onSuccess(Book book) {
-                response.resume(book);
+            public void onSuccess(Book addedBook) {
+                response.resume(addedBook);
             }
 
             @Override
@@ -118,15 +118,31 @@ public class BookResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @ManagedAsync
-    public void updateBook(@PathParam("id") String id, Book book, @Suspended final AsyncResponse response){
+    public void updateBook(@PathParam("id") final String id, final Book book, @Suspended final AsyncResponse response){
         //response.resume(bookDao.addBook(book));
-        ListenableFuture<Book> listenableFuture = bookDao.updateBookAsync(id,book);
-        Futures.addCallback(listenableFuture, new FutureCallback<Book>() {
+        ListenableFuture<Book> getBookFuture = bookDao.getBookAsync(id);
+        Futures.addCallback(getBookFuture, new FutureCallback<Book>() {
             @Override
-            public void onSuccess(Book book) {
-                response.resume(book);
-            }
+            public void onSuccess(Book originalBook) {
+                EntityTag entityTag = generateEntityTag(originalBook);
+                Response.ResponseBuilder responseBuilder = request.evaluatePreconditions(entityTag);
+                if (responseBuilder != null){
+                    response.resume(responseBuilder.build()); //304 Response
+                }else{
+                    ListenableFuture<Book> bookFuture = bookDao.updateBookAsync(id,book);
+                    Futures.addCallback(bookFuture, new FutureCallback<Book>() {
+                        @Override
+                        public void onSuccess(Book updatedBook) {
+                            response.resume(updatedBook);
+                        }
 
+                        @Override
+                        public void onFailure(Throwable throwable) {
+                            response.resume(throwable);
+                        }
+                    });
+                }
+            }
             @Override
             public void onFailure(Throwable throwable) {
                 response.resume(throwable);
