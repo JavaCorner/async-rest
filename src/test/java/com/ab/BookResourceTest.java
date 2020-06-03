@@ -34,8 +34,8 @@ public class BookResourceTest extends JerseyTest {
 
     protected Application configure(){
         final BookDao bookDao = new BookDao();
-        enable(TestProperties.LOG_TRAFFIC);
-        enable(TestProperties.DUMP_ENTITY);
+        //enable(TestProperties.LOG_TRAFFIC);
+        //enable(TestProperties.DUMP_ENTITY);
         return new BookApplication(bookDao);
     }
 
@@ -218,4 +218,29 @@ public class BookResourceTest extends JerseyTest {
         assertEquals(412, updateResponse.getStatus());
     }
 
+    @Test
+    public void patchMethodOverride(){
+        Map<String,Object> updates = new HashMap<>();
+        updates.put("author", "updatedAuthor");
+        Entity<Map<String,Object>> updateEntity = Entity.entity(updates, MediaType.APPLICATION_JSON_TYPE);
+        Response response = target("books").path(book_id1)
+                .queryParam("_method", "PATCH")
+                .request()
+                .post(updateEntity);
+        assertEquals(200, response.getStatus());
+
+        Response getResponse = target("books").path(book_id1).request().get();
+        Map<String,Object> readEntity = deserializeResponseToMap(getResponse);
+        assertEquals("updatedAuthor",readEntity.get("author"));
+    }
+
+    @Test
+    public void contentNegotiationExtension(){
+        Response getXmlResponse = target("books").path(book_id1+".xml").request().get();
+        assertEquals(MediaType.APPLICATION_XML_TYPE, getXmlResponse.getHeaderString("Content-Type"));
+
+        Response getJsonResponse = target("books").path(book_id1+".json").request().get();
+        assertEquals(MediaType.APPLICATION_JSON_TYPE, getJsonResponse.getHeaderString("Content-Type"));
+
+    }
 }

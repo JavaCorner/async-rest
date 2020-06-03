@@ -6,6 +6,12 @@ import com.fasterxml.jackson.jaxrs.xml.JacksonXMLProvider;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.ServerProperties;
+import org.glassfish.jersey.server.filter.HttpMethodOverrideFilter;
+import org.glassfish.jersey.server.filter.UriConnegFilter;
+
+import javax.ws.rs.core.MediaType;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Arpit Bhardwaj
@@ -21,6 +27,12 @@ public class BookApplication extends ResourceConfig {
                 .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
                 .configure(SerializationFeature.INDENT_OUTPUT, true);
 
+        Map<String, MediaType> mediaTypeMap = new HashMap<>();
+        mediaTypeMap.put("xml", MediaType.APPLICATION_XML_TYPE);
+        mediaTypeMap.put("json",MediaType.APPLICATION_JSON_TYPE);
+
+        UriConnegFilter uriConnegFilter = new UriConnegFilter(mediaTypeMap,null);
+
         packages("com.ab");
         register(new AbstractBinder() {
             @Override
@@ -31,5 +43,7 @@ public class BookApplication extends ResourceConfig {
         register(jsonProvider);
         register(xmlProvider);
         property(ServerProperties.BV_SEND_ERROR_IN_RESPONSE, true);
+        register(HttpMethodOverrideFilter.class);
+        register(uriConnegFilter);
     }
 }
